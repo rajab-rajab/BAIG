@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Machine</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- CDN Libraries -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js Store -->
+    <script src="js/alpine-store.js"></script>
+</head>
+<body x-data x-bind:class="{ 'dark-theme': true }">
+
+<div class="ide-container">
+    
+    <!-- 1. Left Sidebar Icons -->
+    <aside class="sidebar">
+        <div class="sidebar-icon active" title="Files">📁</div>
+        <div class="sidebar-icon" title="Chat">💬</div>
+        <div class="sidebar-icon" title="Database">🗄️</div>
+        <div class="sidebar-icon" title="Skills">⚡</div>
+        <div class="sidebar-icon" title="Settings">🔧</div>
+    </aside>
+
+    <!-- 2. Main Content Area -->
+    <main class="main-content">
+        
+        <!-- File Explorer / Editor Area -->
+        <div class="top-panel">
+            <div class="file-explorer">
+                <h3>Explorer</h3>
+                <p class="text-muted">No folder opened</p>
+            </div>
+            
+            <div class="editor-area">
+                <div class="tab-bar">
+                    <div class="tab active">Welcome</div>
+                </div>
+                
+                <!-- Monaco Editor Container (Prompt 4) -->
+                <div id="monaco-container" class="editor-view">
+                    <div class="welcome-screen">
+                        <h1>⚡ Coding Machine</h1>
+                        <p>Your AI-Powered Desktop Coding Agent</p>
+                        <div class="quick-actions">
+                            <button>🚀 New Project</button>
+                            <button>📂 Open Folder</button>
+                            <button>🗄️ Connect DB</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel (Terminal / Output) -->
+        <div class="bottom-panel">
+            <div class="panel-tabs">
+                <span class="active">Terminal</span>
+                <span>Output</span>
+                <span>Problems</span>
+            </div>
+            <div id="terminal-container" class="terminal-view">
+                <!-- xterm.js will mount here in Prompt 6 -->
+                <p class="text-muted">$ Coding Machine Terminal initializing...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 3. Right Panel (Chat) -->
+    <aside class="chat-panel">
+        <div class="chat-header">
+            <h3>Chat with CM</h3>
+            <span class="connection-dot" x-bind:class="{ 'connected': $store.app.isConnected }"></span>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <template x-for="msg in $store.app.messages" :key="msg.id">
+                <div class="message" x-bind:class="msg.role">
+                    <span x-text="msg.content"></span>
+                </div>
+            </template>
+            
+            <!-- Thinking Animation -->
+            <template x-if="$store.app.isThinking">
+                <div class="message assistant thinking">
+                    <div class="dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea 
+                placeholder="Ask Coding Machine..." 
+                x-model="$store.app.inputMessage"
+                @keydown.enter.prevent="$store.app.sendMessage()"
+            ></textarea>
+            <button @click="$store.app.sendMessage()">Send</button>
+        </div>
+    </aside>
+
+</div>
+
+<!-- App Logic -->
+<script src="js/main.js"></script>
+
+</body>
+</html>
