@@ -1,0 +1,26 @@
+chroma_data/
+preferences.db
+backend/.env
+workspace/
+__pycache__/
+*.py[cod]
+build/
+build-cm/
+dist/
+dist-cm/
+*.log
+.pytest_cache/
+
+# Generated PyInstaller packages and historical build outputs
+/dist-mcp/
+/build-mcp/
+/dist-*/
+/build-*/
+
+# Temporary isolated pytest work directories
+/.pytest-tmp*/
+
+# Local desktop runtime output
+/.cm-*.out
+/.cm-*.err
+/tmp*/
