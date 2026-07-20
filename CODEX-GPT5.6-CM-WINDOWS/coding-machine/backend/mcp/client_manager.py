@@ -209,9 +209,10 @@ class MCPClientManager:
             self._log("connect", server_id=server_id, success=False, error=error)
             return {"success": False, "server_id": server_id, "error": error}
         except Exception as exc:
-            self._set_state(server_id, status="error", error=str(exc))
-            self._log("connect", server_id=server_id, success=False, error=str(exc))
-            return {"success": False, "server_id": server_id, "error": str(exc)}
+            error = self._connection_error(config, exc)
+            self._set_state(server_id, status="error", error=error)
+            self._log("connect", server_id=server_id, success=False, error=error)
+            return {"success": False, "server_id": server_id, "error": error}
 
     def disconnect(self, server_id: str) -> dict[str, Any]:
         try:
@@ -360,6 +361,12 @@ class MCPClientManager:
         with self._lock:
             connection = self._connections.pop(server_id, None)
         if connection is not None:
+            if connection.task.done():
+                try:
+                    connection.task.result()
+                except (asyncio.CancelledError, Exception):
+                    pass
+                return
             completed = asyncio.get_running_loop().create_future()
             await connection.queue.put(("close", completed))
             await asyncio.wait_for(completed, timeout=8)
@@ -378,16 +385,11 @@ class MCPClientManager:
         ClientSession, StdioServerParameters, stdio_client, streamable_http_client = self._official_sdk()
         try:
             if config.transport == "stdio":
-                environment = {key: os.environ[key] for key in config.env_keys if os.environ.get(key)}
-                existing_pythonpath = os.environ.get("PYTHONPATH", "")
-                pythonpath = str(PROJECT_DIR)
-                if existing_pythonpath:
-                    pythonpath = os.pathsep.join((pythonpath, existing_pythonpath))
                 parameters = StdioServerParameters(
                     command=config.command,
                     args=list(config.args),
                     cwd=config.cwd or str(PROJECT_DIR),
-                    env={**os.environ, **environment, "PYTHONPATH": pythonpath},
+                    env=self._stdio_environment(config),
                 )
                 transport = stdio_client(parameters)
             else:
@@ -425,7 +427,7 @@ class MCPClientManager:
                         if not completed.done():
                             completed.set_exception(exc)
         except Exception as exc:
-            self._set_state(config.server_id, status="error", error=str(exc))
+            self._set_state(config.server_id, status="error", error=self._connection_error(config, exc))
             if not ready.done():
                 ready.set_exception(exc)
         finally:
@@ -505,6 +507,34 @@ class MCPClientManager:
     def _set_state(self, server_id: str, **values: Any) -> None:
         with self._lock:
             self._states.setdefault(server_id, {}).update(values)
+
+    @staticmethod
+    def _stdio_environment(config: MCPServerConfig) -> dict[str, str]:
+        """Pass only inherited and explicitly allowed environment variables to external MCP runtimes."""
+        configured = {key: os.environ[key] for key in config.env_keys if os.environ.get(key)}
+        return {**os.environ, **configured}
+
+    @staticmethod
+    def _connection_error(config: MCPServerConfig, exc: BaseException) -> str:
+        """Turn nested AnyIO startup errors into a concise, actionable MCP message."""
+        leaf_messages: list[str] = []
+
+        def collect(error: BaseException) -> None:
+            if isinstance(error, BaseExceptionGroup):
+                for nested in error.exceptions:
+                    collect(nested)
+                return
+            detail = str(error).strip()
+            leaf_messages.append(f"{type(error).__name__}: {detail}" if detail else type(error).__name__)
+
+        collect(exc)
+        details = "; ".join(dict.fromkeys(leaf_messages))
+        if isinstance(exc, BaseExceptionGroup):
+            message = f"MCP server '{config.name}' exited during startup"
+            if details:
+                message += f" ({details})"
+            return f"{message}. Verify its command and network access, then try Connect again."
+        return details or f"MCP server '{config.name}' could not be started."
 
     @staticmethod
     def _launch_details(config: MCPServerConfig) -> str:

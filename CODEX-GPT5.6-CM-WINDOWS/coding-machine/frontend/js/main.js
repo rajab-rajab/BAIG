@@ -1,6 +1,9 @@
 (function () {
   const THEME_PREFERENCE_KEY = "theme";
+  const RIGHT_PANEL_ZOOM_PREFERENCE_KEY = "right-panel-zoom";
   const VALID_THEMES = new Set(["colorful", "dark"]);
+  const PANEL_ZOOM_MIN = 100;
+  const PANEL_ZOOM_MAX = 140;
 
   function normalizeTheme(theme) {
     return VALID_THEMES.has(theme) ? theme : "colorful";
@@ -11,6 +14,23 @@
       return normalizeTheme(window.localStorage.getItem(`cm-preference:${THEME_PREFERENCE_KEY}`));
     } catch (error) {
       return "colorful";
+    }
+  }
+
+  function readCachedPanelZoom(key) {
+    try {
+      const value = Number(window.localStorage.getItem(`cm-preference:${key}`));
+      return Number.isFinite(value) ? Math.max(PANEL_ZOOM_MIN, Math.min(PANEL_ZOOM_MAX, value)) : PANEL_ZOOM_MIN;
+    } catch (error) {
+      return PANEL_ZOOM_MIN;
+    }
+  }
+
+  function cachePanelZoom(key, value) {
+    try {
+      window.localStorage.setItem(`cm-preference:${key}`, String(value));
+    } catch (error) {
+      console.warn("Panel zoom cache is unavailable", error);
     }
   }
 
@@ -349,6 +369,7 @@
     if (window.cmAppInstance) {
       window.cmAppInstance.loadSessionContext();
       window.cmAppInstance.loadThemePreference();
+      void window.cmAppInstance.refreshWorkspaceTree();
     }
   });
 
@@ -442,6 +463,7 @@
       workspaceTreeStatus: "",
       workspaceTreePath: "",
       workspaceSelectedPath: "",
+      workspaceSelectedIsDirectory: false,
       workspaceClipboardPath: "",
       activeProjectPath: "",
       activeProjectName: "",
@@ -450,7 +472,7 @@
       sessionListStatus: "",
       sessionSavePromise: null,
       theme: readCachedTheme(),
-      uiZoom: 100,
+      rightPanelZoom: readCachedPanelZoom(RIGHT_PANEL_ZOOM_PREFERENCE_KEY),
       notice: "",
       noticeTimer: null,
       workingTimer: null,
@@ -529,6 +551,7 @@
       searchOpen: false,
       searchQuery: "",
       searchResults: [],
+      searchPinnedResults: [],
       searchStatus: "Search the indexed workspace.",
       allFileTypes: true,
       paletteQuery: "",
@@ -548,8 +571,8 @@
         this.setupGlobalShortcuts();
         this.loadSessionContext();
         this.theme = applyTheme(this.theme);
-        this.applyUiZoom();
         this.loadThemePreference();
+        void this.refreshWorkspaceTree();
         this.socket = io("http://127.0.0.1:5000");
 
         this.socket.on("connect", () => {
@@ -841,7 +864,10 @@
         });
 
         this.socket.on("codebase_search_results", (payload) => {
-          this.searchResults = payload.results || [];
+          const pinnedResults = this.searchPinnedResults || [];
+          const pinnedPaths = new Set(pinnedResults.map((result) => result.metadata && result.metadata.file_path));
+          const semanticResults = (payload.results || []).filter((result) => !pinnedPaths.has(result.metadata && result.metadata.file_path));
+          this.searchResults = [...pinnedResults, ...semanticResults];
           this.searchStatus = payload.success
             ? `${this.searchResults.length} result(s)`
             : payload.error || "Search failed";
@@ -1235,22 +1261,20 @@
         return this.theme;
       },
 
-      applyUiZoom() {
-        document.body.style.zoom = `${this.uiZoom}%`;
+      rightPanelZoomStyle() {
+        return { "--panel-scale": this.rightPanelZoom / 100 };
       },
 
-      changeUiZoom(delta) {
-        this.uiZoom = Math.max(80, Math.min(140, this.uiZoom + delta));
-        this.applyUiZoom();
-        this.showNotice(`Zoom: ${this.uiZoom}%`);
+      changeRightPanelZoom(delta) {
+        this.rightPanelZoom = Math.max(PANEL_ZOOM_MIN, Math.min(PANEL_ZOOM_MAX, this.rightPanelZoom + delta));
+        cachePanelZoom(RIGHT_PANEL_ZOOM_PREFERENCE_KEY, this.rightPanelZoom);
+        this.showNotice(`Right panel zoom: ${this.rightPanelZoom}%`);
       },
 
-      zoomIn() {
-        this.changeUiZoom(10);
-      },
-
-      zoomOut() {
-        this.changeUiZoom(-10);
+      resetRightPanelZoom() {
+        this.rightPanelZoom = PANEL_ZOOM_MIN;
+        cachePanelZoom(RIGHT_PANEL_ZOOM_PREFERENCE_KEY, PANEL_ZOOM_MIN);
+        this.showNotice("Right panel zoom reset to 100%.");
       },
 
       async toggleTheme() {
@@ -1617,7 +1641,17 @@
         this.loadMcpServers();
       },
 
+      openSettingsPanel() {
+        this.rightPanel = "settings";
+        this.skillsOpen = false;
+        this.toolsOpen = false;
+      },
+
       openSkillsMenu() {
+        if (this.skillsOpen && this.rightPanel === "chat") {
+          this.skillsOpen = false;
+          return;
+        }
         this.rightPanel = "chat";
         this.skillsOpen = true;
         this.toolsOpen = false;
@@ -1936,6 +1970,7 @@
         }
         this.$store.cm.activeFile = normalized;
         this.workspaceSelectedPath = normalized;
+        this.workspaceSelectedIsDirectory = false;
         void this.refreshWorkspaceTree(this.activeProjectPath);
         return result;
       },
@@ -1966,14 +2001,23 @@
 
       async refreshWorkspaceTree(relativePath = "") {
         const bridge = window.pywebview && window.pywebview.api;
-        if (!bridge || !bridge.get_tree) {
-          this.workspaceTreeStatus = "Workspace tree requires the desktop bridge.";
-          return { success: false, error: this.workspaceTreeStatus };
-        }
         this.workspaceTreeStatus = "Refreshing...";
+        const path = normalizeWorkspaceRelativePath(relativePath);
         try {
-          const path = normalizeWorkspaceRelativePath(relativePath);
-          const result = await bridge.get_tree(path);
+          let result = null;
+          if (bridge && bridge.get_tree) {
+            try {
+              result = await bridge.get_tree(path);
+            } catch (error) {
+              console.warn("Workspace bridge tree request failed", error);
+            }
+          }
+
+          if (!result || !result.success) {
+            const response = await fetch(`/api/workspace/tree?path=${encodeURIComponent(path)}`);
+            result = await response.json();
+          }
+
           if (!result.success) {
             this.workspaceTreeStatus = result.error || "Unable to load workspace tree.";
             return result;
@@ -1994,11 +2038,13 @@
           this.activeProjectName = item.name;
           return this.refreshWorkspaceTree(item.path);
         }
-        return this.openGeneratedFile(item.path);
+        this.selectWorkspaceItem(item);
+        return this.searchWorkspaceSelection();
       },
 
       selectWorkspaceItem(item) {
         this.workspaceSelectedPath = normalizeWorkspaceRelativePath(item.path);
+        this.workspaceSelectedIsDirectory = Boolean(item.is_dir);
         this.workspaceTreeStatus = `Selected ${item.name}`;
       },
 
@@ -2020,12 +2066,23 @@
         }
         const fileName = selectedPath.split("/").pop();
         this.searchQuery = fileName;
+        this.searchPinnedResults = this.workspaceSelectedIsDirectory
+          ? []
+          : [{
+            id: `workspace-file:${selectedPath}`,
+            text: `Workspace file: ${selectedPath}`,
+            metadata: { file_path: selectedPath, start_line: 1 },
+            match_type: "workspace",
+          }];
+        this.searchResults = [...this.searchPinnedResults];
         this.workspaceTreeOpen = false;
         this.searchOpen = true;
-        this.searchStatus = `Searching for ${fileName}...`;
+        this.searchStatus = this.searchPinnedResults.length
+          ? `Selected ${fileName}. Click the result to open it.`
+          : `Searching for ${fileName}...`;
         this.$nextTick(() => {
           this.$refs.searchInput && this.$refs.searchInput.focus();
-          this.searchCodebase();
+          this.searchCodebase({ preservePinned: true });
         });
       },
 
@@ -2050,6 +2107,7 @@
             return result || { success: false, error: this.workspaceTreeStatus };
           }
           this.workspaceSelectedPath = normalizeWorkspaceRelativePath(result.path);
+          this.workspaceSelectedIsDirectory = Boolean(result.is_dir);
           await this.refreshWorkspaceTree(destinationPath);
           this.workspaceTreeStatus = `Pasted ${result.path}`;
           return result;
@@ -2066,11 +2124,21 @@
         }
       },
 
-      searchCodebase() {
+      searchCodebase({ preservePinned = false } = {}) {
         const query = this.searchQuery.trim();
-        if (!query || !this.socket) {
-          this.searchResults = [];
+        if (!preservePinned) {
+          this.searchPinnedResults = [];
+        }
+        if (!query) {
+          this.searchResults = [...this.searchPinnedResults];
           this.searchStatus = "Enter a search query.";
+          return;
+        }
+        if (!this.socket) {
+          this.searchResults = [...this.searchPinnedResults];
+          this.searchStatus = this.searchPinnedResults.length
+            ? "Selected workspace file is ready to open."
+            : "Backend is not connected.";
           return;
         }
         this.searchStatus = "Searching indexed workspace...";
@@ -2097,11 +2165,14 @@
           : `Reindexing ${this.indexFileTypes.join(", ")} files...`);
       },
 
-      openSearchResult(result) {
+      async openSearchResult(result) {
         const filePath = result && result.metadata && result.metadata.file_path;
         if (filePath) {
-          void this.openGeneratedFile(filePath);
-          this.searchOpen = false;
+          const openResult = await this.openGeneratedFile(filePath);
+          if (openResult && openResult.success) {
+            this.searchPinnedResults = [];
+            this.searchOpen = false;
+          }
         }
       },
 

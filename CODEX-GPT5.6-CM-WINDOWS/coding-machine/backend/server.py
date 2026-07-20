@@ -71,6 +71,26 @@ def create_app(application_path: str | Path = APPLICATION_PATH) -> Flask:
     def mcp_servers() -> Any:
         return jsonify({"servers": mcp_client_manager.list_servers()})
 
+    @application.get("/api/workspace/tree")
+    def workspace_tree() -> Any:
+        relative_path = str(request.args.get("path", ""))
+        try:
+            target = Path(validate_path(relative_path, WORKSPACE_PATH))
+            if not target.is_dir():
+                return jsonify({"success": False, "error": "Workspace path is not a folder", "items": []}), 400
+
+            items = [
+                {
+                    "name": item.name,
+                    "path": item.relative_to(WORKSPACE_PATH).as_posix(),
+                    "is_dir": item.is_dir(),
+                }
+                for item in sorted(target.iterdir(), key=lambda item: item.name.lower())
+            ]
+            return jsonify({"success": True, "items": items})
+        except (OSError, PermissionError, ValueError) as exc:
+            return jsonify({"success": False, "error": str(exc), "items": []}), 400
+
     return application
 
 

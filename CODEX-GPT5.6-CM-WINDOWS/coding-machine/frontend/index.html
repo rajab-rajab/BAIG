@@ -28,7 +28,7 @@
           <button class="activity-icon" type="button" title="Tools" aria-label="Tools" :class="{ 'is-active': toolsOpen }" @click="openToolsMenu()">🛠</button>
         </nav>
         <div class="activity-footer">
-          <button class="activity-icon" type="button" title="Settings" aria-label="Settings" @click="showNotice('Use the Theme button in the editor toolbar for appearance settings.')">⚙</button>
+          <button class="activity-icon" type="button" title="Settings" aria-label="Settings" :class="{ 'is-active': rightPanel === 'settings' }" @click="openSettingsPanel()">⚙</button>
         </div>
       </aside>
 
@@ -136,12 +136,6 @@
               <span x-text="theme === 'dark' ? 'Dark' : 'Colorful'"></span>
             </button>
             <button class="header-button icon-button" type="button" aria-label="More actions" title="Open Command Palette (Ctrl+Shift+P)" @click="openCommandPalette()">⋯</button>
-            <button class="header-button icon-button" type="button" aria-label="Zoom out" title="Zoom out" @click="zoomOut()">
-              <svg class="zoom-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5" /><path d="M7.5 10.5h6M15 15l4.5 4.5" /></svg>
-            </button>
-            <button class="header-button icon-button" type="button" aria-label="Zoom in" title="Zoom in" @click="zoomIn()">
-              <svg class="zoom-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5" /><path d="M10.5 7.5v6M7.5 10.5h6M15 15l4.5 4.5" /></svg>
-            </button>
           </div>
         </header>
         <div class="editor-tabs">
@@ -206,7 +200,7 @@
         </form>
       </section>
 
-      <aside class="chat-panel" aria-label="MCM Agent chat">
+      <aside class="chat-panel" :style="rightPanelZoomStyle()" aria-label="MCM Agent chat">
         <header class="chat-header">
           <div>
             <div class="chat-title">MCM Agent</div>
@@ -216,6 +210,11 @@
             <button type="button" :class="{ 'is-active': rightPanel === 'chat' }" @click="rightPanel = 'chat'">Chat</button>
             <button type="button" :class="{ 'is-active': rightPanel === 'database' }" @click="rightPanel = 'database'; $nextTick(() => window.cmSqlEditor.init())">Database</button>
             <button type="button" :class="{ 'is-active': rightPanel === 'mcp' }" @click="toggleMcpPanel()">MCP</button>
+          </div>
+          <div class="panel-zoom-controls" aria-label="Right panel zoom">
+            <button type="button" @click="changeRightPanelZoom(-10)" :disabled="rightPanelZoom <= 100" aria-label="Decrease right panel zoom">−</button>
+            <button class="panel-zoom-value" type="button" @click="resetRightPanelZoom()" title="Reset right panel zoom" x-text="`${rightPanelZoom}%`">100%</button>
+            <button type="button" @click="changeRightPanelZoom(10)" :disabled="rightPanelZoom >= 140" aria-label="Increase right panel zoom">+</button>
           </div>
         </header>
         <section class="approval-backdrop" x-show="approvalRequest" x-cloak aria-label="Action approval required">
@@ -380,7 +379,10 @@
               <div class="db-section-title">Source Control</div>
               <strong x-text="sourceControl.branch || 'Git repository'"></strong>
             </div>
-            <button class="source-control-refresh" type="button" @click="refreshSourceControl()" :disabled="sourceControl.loading">↻</button>
+            <div class="source-control-header-actions">
+              <button class="source-control-refresh" type="button" @click="refreshSourceControl()" :disabled="sourceControl.loading" aria-label="Refresh source control" title="Refresh source control">↻</button>
+              <button class="source-control-close" type="button" @click="rightPanel = 'chat'" aria-label="Close Source Control" title="Close Source Control">×</button>
+            </div>
           </div>
           <div class="source-control-status" :class="{ 'is-error': sourceControl.error }" x-text="sourceControl.loading ? 'Refreshing...' : (sourceControl.error || sourceControl.status)"></div>
           <div class="source-control-empty" x-show="!sourceControl.isRepo && !sourceControl.loading">
@@ -484,6 +486,46 @@
             <pre x-show="mcp.result" x-text="mcp.result"></pre>
           </div>
         </section>
+        <section class="settings-panel" x-show="rightPanel === 'settings'" x-cloak aria-label="Application settings">
+          <div class="settings-panel-header">
+            <div>
+              <div class="db-section-title">Settings</div>
+              <strong>Application Preferences</strong>
+            </div>
+            <button class="source-control-close" type="button" @click="rightPanel = 'chat'" aria-label="Close Settings" title="Close Settings">×</button>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Appearance</div>
+            <div class="settings-row">
+              <div><strong>Theme</strong><small x-text="theme === 'dark' ? 'Dark Theme' : 'Colorful Theme'"></small></div>
+              <button class="source-control-refresh" type="button" @click="toggleTheme()">Switch Theme</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Workspace</div>
+            <div class="settings-row settings-row-stacked">
+              <div><strong>Current Workspace</strong><small class="settings-path" x-text="sessionContext.workspaceRoot || 'No workspace selected'">No workspace selected</small></div>
+              <button class="source-control-refresh" type="button" @click="openWorkspace()">Open Workspace</button>
+            </div>
+            <p class="settings-help">Changing the workspace restarts the application to keep files, indexing, and terminal state aligned.</p>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Agent Workflow</div>
+            <label class="settings-checkbox"><input type="checkbox" x-model="autoCapabilities" /> Smart Routing</label>
+            <p class="settings-help">Automatically recommends the relevant agents, skills, and tools for each request.</p>
+            <label class="settings-select">Maximum agent handoffs
+              <select x-model.number="handoffLimit">
+                <option :value="4">4</option>
+                <option :value="8">8</option>
+                <option :value="12">12</option>
+                <option :value="16">16</option>
+              </select>
+            </label>
+          </div>
+        </section>
         <form class="chat-composer" x-show="rightPanel === 'chat'" @submit.prevent="sendMessage()">
           <div class="skill-picker">
             <button class="skill-toggle" type="button" @click="skillsOpen = !skillsOpen; toolsOpen = false">
@@ -491,7 +533,10 @@
               <span class="skill-count" x-text="selectedSkills.length ? selectedSkills.length : 'none'">none</span>
             </button>
             <div class="skill-menu" x-show="skillsOpen" x-cloak>
-              <div class="skill-menu-heading">Available Skills</div>
+              <div class="menu-heading-row">
+                <div class="skill-menu-heading">Available Skills</div>
+                <button class="menu-close-button" type="button" @click="skillsOpen = false" aria-label="Close Skills menu" title="Close Skills menu">×</button>
+              </div>
               <div class="skill-menu-note">Select Skills to inject their guidance and scoped tools into the next agent request.</div>
               <template x-for="skill in skills" :key="skill.id">
                 <label class="skill-option">
@@ -512,7 +557,10 @@
               <span class="tool-count" x-text="selectedTools.length ? selectedTools.length : 'native'">native</span>
             </button>
             <div class="tool-menu" x-show="toolsOpen" x-cloak>
-              <div class="tool-menu-heading">Built-in Agent Tools</div>
+              <div class="menu-heading-row">
+                <div class="tool-menu-heading">Built-in Agent Tools</div>
+                <button class="menu-close-button" type="button" @click="toolsOpen = false" aria-label="Close Tools menu" title="Close Tools menu">×</button>
+              </div>
               <div class="tool-menu-note">Role-native tools are always available. Select extra tools for the next request; existing safety approvals still apply.</div>
               <div class="tool-menu-actions">
                 <button type="button" @click="selectedTools = tools.map((tool) => tool.id)">Enable all</button>

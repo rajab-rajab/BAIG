@@ -43,6 +43,27 @@ def test_http_server_requires_a_valid_url(tmp_path: Path):
         raise AssertionError("Invalid MCP URL was accepted")
 
 
+def test_task_group_startup_error_is_reported_with_actionable_details(tmp_path: Path):
+    manager = MCPClientManager(approvals=AutoApprove(), log_path=tmp_path / "mcp.log")
+    config = next(server for server in builtin_server_configs() if server.server_id == "fetch")
+
+    message = manager._connection_error(config, ExceptionGroup("unhandled errors in a TaskGroup", [RuntimeError("server exited")]))
+
+    assert "TaskGroup" not in message
+    assert "server exited" in message
+    assert "try Connect again" in message
+
+
+def test_stdio_environment_does_not_inject_application_pythonpath(tmp_path: Path, monkeypatch):
+    manager = MCPClientManager(approvals=AutoApprove(), log_path=tmp_path / "mcp.log")
+    config = next(server for server in builtin_server_configs() if server.server_id == "fetch")
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+
+    environment = manager._stdio_environment(config)
+
+    assert "PYTHONPATH" not in environment
+
+
 def test_manager_discovers_stdio_tools_and_blocks_read_only_writes(tmp_path: Path):
     project_root = Path(__file__).resolve().parents[2]
     manager = MCPClientManager(approvals=AutoApprove(), log_path=tmp_path / "mcp.log")
