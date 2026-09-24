@@ -35,3 +35,13 @@ Rajab Baig · Build, Ship, Shape: Amazon Developer Hackathon
 ## Verification boundary
 
 The original LessonLoop workflow passed automated tests and an independent MCP client check. The optional Bedrock code passed a simulated-response test. A live Bedrock response has not yet been confirmed, so I am not reporting AWS runtime reliability as a tested outcome.
+
+## 4. Bedrock account quota blocked the live teaching demo
+
+- **Task attempted:** Record a live AWS coaching explanation in LessonLoop using Amazon Nova 2 Lite.
+- **Steps taken:** Signed into AWS locally, set the application Region to `us-east-1`, selected `us.amazon.nova-2-lite-v1:0`, started a lesson, and selected **Ask AWS coach**. I also checked Nova Pro as an alternative.
+- **Expected:** Bedrock would return a short explanation for the learner's answer.
+- **Actual:** LessonLoop displayed `AWS coaching unavailable: Too many tokens per day, please wait before trying again.` In Service Quotas for `us-east-1`, both Nova 2 Lite and Nova Pro showed a model invocation maximum of **0 tokens per day** for this account. Nova 2 Lite's global cross-Region request and token-per-minute quotas were also 0.
+- **Severity:** Critical for the Bedrock demo; the five core lesson tools still work.
+- **Workaround:** I did not present the failed recording as a successful Bedrock demo. I added a separate, explicit Amazon S3 export of an anonymous teacher progress summary to LessonLoop so the project can demonstrate an AWS service while the Bedrock quota is resolved. A live S3 upload still needs verification.
+- **Actionable suggestion:** Show account-specific model token quotas prominently in the Bedrock model catalog before developers attempt a first call, and give a direct support or quota-request route when a new account has a zero, non-adjustable daily quota.
