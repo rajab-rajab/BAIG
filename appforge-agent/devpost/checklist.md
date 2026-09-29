@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Launch BuildTrace, choose **Use Offline Template**, then confirm the visible progress turns green, each file appears in a tab, and the terminal reports successful initialization.
   Commit: `Build offline project generation flow`
 
-- [ ] **2. The embedded terminal proves the generated task manager persists work**
+- [x] **2. The embedded terminal proves the generated task manager persists work**
   Becomes usable: After an offline build, the user can enter the specified add and list commands in BuildTrace and visibly see a stored SQLite task in the terminal.
   Why now: The first slice proves file creation; this slice closes the demo's proof loop by showing that the generated code actually accepts commands and retains task data.
   PRD ref: `prd.md > The Core Journey` (steps 6–7), `Features and Behavior > Local execution and proof`

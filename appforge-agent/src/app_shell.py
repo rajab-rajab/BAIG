@@ -33,7 +33,7 @@ class BuildTraceApp(ctk.CTk):
         self.progress.grid(row=1, column=1, sticky="new", padx=(6, 16), pady=(0, 6))
         self.inspector = FileInspector(self)
         self.inspector.grid(row=2, column=1, sticky="nsew", padx=(6, 16), pady=6)
-        self.terminal = TerminalPanel(self)
+        self.terminal = TerminalPanel(self, self.run_terminal_command)
         self.terminal.grid(row=3, column=1, sticky="nsew", padx=(6, 16), pady=(6, 16))
         self.input_panel = BuildInputPanel(self, self.start_offline_build)
         self.input_panel.grid(row=1, column=0, rowspan=3, sticky="nsew", padx=(16, 6), pady=(0, 16))
@@ -52,6 +52,15 @@ class BuildTraceApp(ctk.CTk):
             self.on_progress("disk_write", "failed")
             self.terminal.append(f"Build failed: {error}\n", is_error=True)
             self.input_panel.set_building(False)
+
+    def run_terminal_command(self, command: str) -> None:
+        runner = self.controller.terminal_runner
+        if runner is None:
+            self.terminal.append("Build the offline project before running commands.\n", is_error=True)
+            return
+        self.terminal.append(f"> {command}\n")
+        runner.run_demo_command(command)
+        self.after(100, self.poll_terminal)
 
     def poll_terminal(self) -> None:
         runner = self.controller.terminal_runner
