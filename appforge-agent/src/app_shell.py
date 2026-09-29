@@ -38,20 +38,28 @@ class BuildTraceApp(ctk.CTk):
         self.input_panel = BuildInputPanel(self, self.start_offline_build)
         self.input_panel.grid(row=1, column=0, rowspan=3, sticky="nsew", padx=(16, 6), pady=(0, 16))
         self.controller = BuildController(self.on_progress, self.inspector.show_files)
+        self._build_active = False
+        self._terminal_polling = False
 
     def on_progress(self, step: str, status: str) -> None:
         self.progress.set_status(step, status)
 
     def start_offline_build(self) -> None:
+        if self._build_active:
+            return
+        self._build_active = True
         self.input_panel.set_building(True)
+        self.terminal.set_command_enabled(False)
         self.terminal.append("[offline] Loading the verified local template…\n")
         try:
             self.controller.build_offline()
-            self.after(100, self.poll_terminal)
+            self._schedule_terminal_poll()
         except Exception as error:  # visible build error instead of a silent GUI failure
             self.on_progress("disk_write", "failed")
             self.terminal.append(f"Build failed: {error}\n", is_error=True)
             self.input_panel.set_building(False)
+            self.terminal.set_command_enabled(True)
+            self._build_active = False
 
     def run_terminal_command(self, command: str) -> None:
         runner = self.controller.terminal_runner
@@ -59,26 +67,43 @@ class BuildTraceApp(ctk.CTk):
             self.terminal.append("Build the offline project before running commands.\n", is_error=True)
             return
         self.terminal.append(f"> {command}\n")
-        runner.run_demo_command(command)
-        self.after(100, self.poll_terminal)
+        if runner.run_demo_command(command):
+            self.terminal.set_command_enabled(False)
+            self._schedule_terminal_poll()
+        else:
+            self._display_terminal_events()
 
-    def poll_terminal(self) -> None:
+    def _schedule_terminal_poll(self) -> None:
+        if not self._terminal_polling:
+            self._terminal_polling = True
+            self.after(100, self.poll_terminal)
+
+    def _display_terminal_events(self) -> bool:
+        """Render queued output and return whether the current process exited."""
         runner = self.controller.terminal_runner
         if runner is None:
-            return
-        still_running = True
+            return False
+        exited = False
         for stream, value in runner.drain_events():
             if stream == "exit":
                 exit_code = int(value)
                 if exit_code == 0:
                     self.on_progress("auto_execution", "complete")
-                    self.terminal.append("[verified] Generated project initialized successfully.\n")
+                    self.terminal.append("[verified] Generated command completed successfully.\n")
                 else:
                     self.on_progress("auto_execution", "failed")
                     self.terminal.append(f"[failed] Generated project exited with code {exit_code}.\n", is_error=True)
-                self.input_panel.set_building(False)
-                still_running = False
+                exited = True
             else:
                 self.terminal.append(str(value), is_error=stream == "stderr")
-        if still_running:
+        return exited
+
+    def poll_terminal(self) -> None:
+        if self._display_terminal_events():
+            self._terminal_polling = False
+            self.terminal.set_command_enabled(True)
+            if self._build_active:
+                self.input_panel.set_building(False)
+                self._build_active = False
+        else:
             self.after(100, self.poll_terminal)

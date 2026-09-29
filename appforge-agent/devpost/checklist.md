@@ -71,3 +71,5 @@ Reflection: [offered/answered/declined/already covered — personal answer belon
 Activity mode: [live app and editor, explicit static fallback, focused alternative, prior practice, or recap]
 
 ## Revisions
+
+- Terminal polling now has a single active callback and disables terminal input while a generated command runs — a hands-on check exposed the risk of overlapping callbacks continuing after a process exits.

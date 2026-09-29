@@ -34,10 +34,16 @@ class TerminalPanel(ctk.CTkFrame):
                 on_command(text)
 
         self.command.bind("<Return>", lambda _event: submit())
-        ctk.CTkButton(command_row, text="Run", width=74, command=submit, fg_color=theme.INDIGO).pack(side="right")
+        self.run_button = ctk.CTkButton(command_row, text="Run", width=74, command=submit, fg_color=theme.INDIGO)
+        self.run_button.pack(side="right")
 
     def append(self, text: str, is_error: bool = False) -> None:
         self.output.configure(state="normal")
         self.output.insert("end", text, "error" if is_error else None)
         self.output.see("end")
         self.output.configure(state="disabled")
+
+    def set_command_enabled(self, enabled: bool) -> None:
+        state = "normal" if enabled else "disabled"
+        self.command.configure(state=state)
+        self.run_button.configure(state=state)
