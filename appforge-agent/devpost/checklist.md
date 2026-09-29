@@ -73,3 +73,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 ## Revisions
 
 - Terminal polling now has a single active callback and disables terminal input while a generated command runs — a hands-on check exposed the risk of overlapping callbacks continuing after a process exits.
+- The terminal command bar now occupies a fixed bottom grid row — visual feedback showed that the packed layout could hide the Run control beneath the terminal output.
