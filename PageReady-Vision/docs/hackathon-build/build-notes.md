@@ -48,3 +48,10 @@
 - Initial skewed fixture correctly triggered frame-edge review because its rotated outer border reached the frame margin. Participant approved the fixture-only correction: omit that border for the recoverable-skew fixture while retaining the production safeguard.
 - Verification after the correction: `8 passed` with `python -m pytest -q -p no:cacheprovider`.
 - Awaiting participant inspection of the Data Engine evidence sheet before marking items 1–3 complete and committing the milestone.
+
+## API Routes Milestone
+
+- Implemented the ephemeral batch service and typed FastAPI contract for seeded batches, uploads, processing, batch state, clerk overrides, image serving, audit export, and clear operations.
+- The first faded fixture made both blur and contrast fail, so policy correctly chose rescan. Participant approved a fixture-only contrast adjustment from 0.18 to 0.35, retaining rescan priority while restoring the intended low-contrast review case.
+- Verification after the correction: `14 passed` with `python -m pytest -q -p no:cacheprovider`.
+- Awaiting participant API inspection before marking items 4–5 complete and committing the milestone.

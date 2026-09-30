@@ -53,7 +53,10 @@ def generate_demo_documents() -> list[DemoDocument]:
     skewed = _rotate(_base_document("COUNCIL MINUTES", seed=22, outer_border=False), 11.5)
     blurred = cv2.GaussianBlur(_base_document("PROPERTY CARD", seed=33), (31, 31), 0)
     low_contrast_source = _base_document("ZONING NOTICE", seed=44)
-    low_contrast = cv2.addWeighted(low_contrast_source, 0.18, np.full_like(low_contrast_source, 210), 0.82, 0)
+    # Keep enough edge detail for the focus check to pass while reducing the
+    # tonal spread below the contrast threshold. The policy can then correctly
+    # demonstrate its intended human-review route instead of rescan priority.
+    low_contrast = cv2.addWeighted(low_contrast_source, 0.35, np.full_like(low_contrast_source, 210), 0.65, 0)
     return [
         DemoDocument("permit-register-clean.png", "Approved", clean),
         DemoDocument("council-minutes-skewed.png", "Approved", skewed),

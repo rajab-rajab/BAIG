@@ -34,13 +34,13 @@
 
 Approved: four generated pages, metric outcomes, transition traces, and deskew evidence inspected; `8 passed`. Commit the tested engine milestone before beginning the API milestone.
 
-- [ ] **4. Build the ephemeral batch service**
+- [x] **4. Build the ephemeral batch service**
   Spec ref: `spec.md > 4.1 Page model` and `spec.md > 5. API Contract`
   What to build: Implement in-memory batch ownership, ordered sequential processing, image lifetime, selection-ready page data, clear-before-new-batch behavior, and audit assembly.
   Acceptance: A page progresses visibly through the required states; an active batch blocks a new batch; browser/session reset is intentionally ephemeral.
   Verify: Run service tests for queue ordering, duplicate processing prevention, clear behavior, and audit content exclusion.
 
-- [ ] **5. Expose the FastAPI contract**
+- [x] **5. Expose the FastAPI contract**
   Spec ref: `spec.md > 5. API Contract`
   What to build: Add typed demo, upload, process, batch-state, override, audit, clear, and image-serving routes with safe validation and client-safe errors.
   Acceptance: The frontend can obtain every item of queue, image, metric, trace, and override data; corrupt/unsupported input stays visible with a readable error; audit JSON contains no image bytes, URLs, or base64 data.
@@ -48,7 +48,7 @@ Approved: four generated pages, metric outcomes, transition traces, and deskew e
 
 ### Inspection milestone — API Routes
 
-Inspect the generated OpenAPI page or scripted API responses for the four-page demo, review override, error state, and image-free audit export. Commit the tested API milestone after approval.
+Approved: scripted API responses verified the four-page demo, review override, intake error state, and image-free audit export; `14 passed`. Commit the tested API milestone before beginning the React console.
 
 - [ ] **6. Scaffold the React/Vite technical-ops console**
   Spec ref: `spec.md > 2. Technology Decisions` and `spec.md > 6. Frontend Design and Interaction`
