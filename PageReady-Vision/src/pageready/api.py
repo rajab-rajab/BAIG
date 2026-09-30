@@ -23,11 +23,16 @@ def create_app(service: BatchService | None = None) -> FastAPI:
         except ValueError as error:
             raise api_error(error) from error
 
+    @app.post("/api/session/reset", status_code=204)
+    def reset_session() -> Response:
+        service.reset_session()
+        return Response(status_code=204)
+
     @app.post("/api/batches/upload", status_code=201)
     async def upload_to_batch(file: UploadFile = File(...)) -> dict[str, object]:
         try:
-            page = service.add_upload(file.filename or "unnamed-upload", await file.read())
-            return page.model_dump(mode="json")
+            service.add_upload(file.filename or "unnamed-upload", await file.read())
+            return service.public_batch()
         except ValueError as error:
             raise api_error(error) from error
 
@@ -55,6 +60,14 @@ def create_app(service: BatchService | None = None) -> FastAPI:
     def approve_warning(page_id: str, request: OverrideRequest) -> dict[str, object]:
         try:
             return service.approve_with_warning(page_id, request.note).model_dump(mode="json")
+        except (ValueError, KeyError) as error:
+            raise api_error(error) from error
+
+    @app.delete("/api/pages/{page_id}", status_code=204)
+    def remove_page(page_id: str) -> Response:
+        try:
+            service.remove_page(page_id)
+            return Response(status_code=204)
         except (ValueError, KeyError) as error:
             raise api_error(error) from error
 

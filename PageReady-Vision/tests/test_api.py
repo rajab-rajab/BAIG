@@ -37,8 +37,15 @@ def test_api_rejects_new_batch_and_accepts_a_review_override() -> None:
     assert approved.json()["status"] == "Approved with warning"
 
 
+def test_session_reset_allows_a_fresh_demo_after_a_browser_refresh() -> None:
+    client = TestClient(create_app(BatchService()))
+    assert client.post("/api/batches/demo").status_code == 201
+    assert client.post("/api/session/reset").status_code == 204
+    assert client.post("/api/batches/demo").status_code == 201
+
+
 def test_corrupt_upload_remains_visible_as_an_error_item() -> None:
     client = TestClient(create_app(BatchService()))
     uploaded = client.post("/api/batches/upload", files={"file": ("bad-image.txt", b"not an image", "text/plain")})
     assert uploaded.status_code == 201
-    assert uploaded.json()["error"]["code"] == "unsupported_or_corrupt"
+    assert uploaded.json()["pages"][0]["error"]["code"] == "unsupported_or_corrupt"

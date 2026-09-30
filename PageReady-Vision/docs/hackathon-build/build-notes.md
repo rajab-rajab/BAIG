@@ -55,3 +55,13 @@
 - The first faded fixture made both blur and contrast fail, so policy correctly chose rescan. Participant approved a fixture-only contrast adjustment from 0.18 to 0.35, retaining rescan priority while restoring the intended low-contrast review case.
 - Verification after the correction: `14 passed` with `python -m pytest -q -p no:cacheprovider`.
 - Awaiting participant API inspection before marking items 4–5 complete and committing the milestone.
+
+## UI Split-Panel Milestone
+
+- Added a manually scaffolded React/Vite/TypeScript operations console after the interactive Vite initializer produced no files.
+- Implemented first-run dropzone/demo loader, sequential visual state pacing, queue, side-by-side evidence, scorecard, trace timeline, required-note override, image-free export, clear control, and failed-upload Remove/Replace controls.
+- Browser verification exposed and fixed two V1 boundary issues: override responses must retain preloaded evidence URLs, and browser refresh must reset the backend's ephemeral session as well as React state.
+- Verification: full Python suite `15 passed`; production frontend build completed; browser flow confirmed the exact seeded summary, review evidence, override gating, and clean refresh/replay behavior.
+- Awaiting participant UI inspection before marking items 6–8 complete and committing the milestone.
+
+- UI milestone approved. Accuracy note for submission materials: V1 displays original/processed evidence and chronological trace events, but does not draw defect bounding boxes or expose per-tool latency in the UI; only total backend execution runtime is currently recorded.

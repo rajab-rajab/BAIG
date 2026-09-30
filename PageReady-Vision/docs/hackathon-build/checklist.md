@@ -50,19 +50,19 @@ Approved: four generated pages, metric outcomes, transition traces, and deskew e
 
 Approved: scripted API responses verified the four-page demo, review override, intake error state, and image-free audit export; `14 passed`. Commit the tested API milestone before beginning the React console.
 
-- [ ] **6. Scaffold the React/Vite technical-ops console**
+- [x] **6. Scaffold the React/Vite technical-ops console**
   Spec ref: `spec.md > 2. Technology Decisions` and `spec.md > 6. Frontend Design and Interaction`
   What to build: Create the TypeScript app, typed API client, shared models, dark slate theme tokens, empty dropzone, demo loader, and active-batch guard.
   Acceptance: First load shows both the empty dropzone and **Load 4-Page Municipal Demo Batch**; a second intake is blocked until clear.
   Verify: Run frontend typecheck/build and manually load the first-run state in a browser.
 
-- [ ] **7. Implement the live queue and split-panel evidence view**
+- [x] **7. Implement the live queue and split-panel evidence view**
   Spec ref: `spec.md > 3. Architecture and Data Flow` and `spec.md > 6. Queue and detail console`
   What to build: Render ordered queue cards, exact statuses, selected-page original/processed images, scorecard, warning reason, and chronological trace with live polling.
   Acceptance: The skewed page visibly progresses through `Analyzing`, `Corrected`, and `Approved`, with its trace showing deskew and verification; rescan and review evidence are equally inspectable.
   Verify: Run the local stack, load the demo, and capture the deskew/trace sequence using browser inspection or an automated UI test.
 
-- [ ] **8. Complete review, override, summary, and export controls**
+- [x] **8. Complete review, override, summary, and export controls**
   Spec ref: `spec.md > 4.3 Deterministic decision policy` and `spec.md > 6. Completion and export`
   What to build: Add evidence-led review, required override note, `Approved with warning` transition, truthful live summary, audit download, failed-file Remove/Replace, and clear/reset controls.
   Acceptance: Review shows prior trace and metrics before override; the override retains the warning and appends the clerk note; the seeded unresolved summary reads `2 Approved (1 Auto-Corrected) · 1 Rescan Requested · 1 Needs Review`.
@@ -70,7 +70,7 @@ Approved: scripted API responses verified the four-page demo, review override, i
 
 ### Inspection milestone — UI Split-Panel
 
-Inspect the complete four-page flow in the browser, emphasizing the split-screen deskew snap and real-time trace. Capture at least one screenshot candidate and commit the tested UI milestone after approval.
+Approved: complete four-page browser flow inspected, including deskew trace, evidence-led review, required-note override, summary, export control, and clean refresh/replay; `15 passed` and production frontend build passed. Commit the tested UI milestone before beginning Docker work.
 
 - [ ] **9. Package Docker runtime and benchmark harness**
   Spec ref: `spec.md > 2. Technology Decisions` and `spec.md > 9. Verification Plan`

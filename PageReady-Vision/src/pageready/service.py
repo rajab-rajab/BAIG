@@ -127,6 +127,21 @@ class BatchService:
         self._require_batch()
         self.batch = None
 
+    def reset_session(self) -> None:
+        """Clear the intentionally ephemeral local demo session on browser refresh."""
+        self.batch = None
+
+    def remove_page(self, page_id: str) -> None:
+        batch = self._require_batch()
+        if batch.processing:
+            raise ValueError("Cannot remove files while the batch is processing.")
+        page = self._find_page(page_id)
+        batch.pages.remove(page)
+        batch.images.pop(f"{page.id}:original", None)
+        batch.images.pop(f"{page.id}:processed", None)
+        for index, remaining in enumerate(batch.pages):
+            remaining.queue_index = index
+
     def public_batch(self, batch: Batch | None = None) -> dict[str, object]:
         batch = batch or self._require_batch()
         pages = []
