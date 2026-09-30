@@ -29,7 +29,7 @@ Build mode: fast
   Learner check: In the terminal panel, enter `python main.py add "Submit Devpost Video"` and `python main.py list`; confirm the created ID and formatted task row appear.
   Commit: `Add embedded task manager verification`
 
-- [ ] **3. BuildTrace uses live OpenAI generation when available and handles failures clearly**
+- [x] **3. BuildTrace uses live OpenAI generation when available and handles failures clearly**
   Becomes usable: With a configured key, the app can request the three-file payload from OpenAI; without a key, it clearly offers offline generation; failed live requests fall back without losing the demo flow.
   Why now: The reliable offline core already works, so the external-service risk is isolated and easy to diagnose without jeopardizing the proof.
   PRD ref: `prd.md > Features and Behavior > Build request and readiness`, `States and Boundaries`
@@ -51,7 +51,7 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — after slice 2, when the offline build and task-persistence proof can shape the remaining live-generation and polish work
+- [x] Early usable behavior explored — after slice 2, when the offline build and task-persistence proof can shape the remaining live-generation and polish work
 - [ ] Final kick-the-tires exploration and feedback completed
 
 ## Final Review

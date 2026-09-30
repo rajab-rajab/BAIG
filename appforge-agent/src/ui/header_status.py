@@ -23,3 +23,9 @@ class HeaderStatus(ctk.CTkFrame):
             pady=5,
         )
         self.badge.grid(row=0, column=1, padx=18, pady=12, sticky="e")
+
+    def set_live_ready(self) -> None:
+        self.badge.configure(text="LLM Ready", fg_color=theme.EMERALD)
+
+    def set_unreachable(self) -> None:
+        self.badge.configure(text="LLM Unreachable", fg_color=theme.RED)

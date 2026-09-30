@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import threading
+import queue
+
 import customtkinter as ctk
 
 from src import theme
 from src.build_controller import BuildController
+from src.generation_service import GenerationService
 from src.ui.build_input_panel import BuildInputPanel
 from src.ui.file_inspector import FileInspector
 from src.ui.header_status import HeaderStatus
@@ -35,31 +39,84 @@ class BuildTraceApp(ctk.CTk):
         self.inspector.grid(row=2, column=1, sticky="nsew", padx=(6, 16), pady=6)
         self.terminal = TerminalPanel(self, self.run_terminal_command)
         self.terminal.grid(row=3, column=1, sticky="nsew", padx=(6, 16), pady=(6, 16))
-        self.input_panel = BuildInputPanel(self, self.start_offline_build)
+        self.input_panel = BuildInputPanel(self, self.start_live_build, self.start_offline_build)
         self.input_panel.grid(row=1, column=0, rowspan=3, sticky="nsew", padx=(16, 6), pady=(0, 16))
-        self.controller = BuildController(self.on_progress, self.inspector.show_files)
+        self._ui_events: queue.Queue[tuple[str, object]] = queue.Queue()
+        self.controller = BuildController(self._queue_progress, self._queue_files)
         self._build_active = False
         self._terminal_polling = False
+        self._refresh_api_readiness()
+        self.after(75, self._poll_ui_events)
+
+    def _queue_progress(self, step: str, status: str) -> None:
+        self._ui_events.put(("progress", (step, status)))
+
+    def _queue_files(self, files: dict[str, object]) -> None:
+        self._ui_events.put(("files", files))
+
+    def _poll_ui_events(self) -> None:
+        while True:
+            try:
+                kind, payload = self._ui_events.get_nowait()
+            except queue.Empty:
+                break
+            if kind == "progress":
+                step, status = payload  # type: ignore[misc]
+                self.on_progress(step, status)
+            elif kind == "files":
+                self.inspector.show_files(payload)  # type: ignore[arg-type]
+            elif kind == "build_complete":
+                self._schedule_terminal_poll()
+            elif kind == "build_failed":
+                self._handle_build_failure(payload)  # type: ignore[arg-type]
+        self.after(75, self._poll_ui_events)
 
     def on_progress(self, step: str, status: str) -> None:
+        if step == "build_log":
+            self.terminal.append(status)
+            return
         self.progress.set_status(step, status)
+
+    def _refresh_api_readiness(self) -> None:
+        if self.controller.generation_service.is_available:
+            self.header.set_live_ready()
+            self.input_panel.set_live_availability(True)
+        else:
+            self.header.set_unreachable()
+            self.input_panel.set_live_availability(False)
+
+    def start_live_build(self) -> None:
+        if self._build_active:
+            return
+        prompt = self.input_panel.prompt.get("1.0", "end-1c")
+        self._begin_build(lambda: self.controller.build_live(prompt), "[live] Starting BuildTrace generation…\n")
 
     def start_offline_build(self) -> None:
         if self._build_active:
             return
+        self._begin_build(self.controller.build_offline, "[offline] Loading the verified local template…\n")
+
+    def _begin_build(self, build_action: callable, start_message: str) -> None:
         self._build_active = True
         self.input_panel.set_building(True)
         self.terminal.set_command_enabled(False)
-        self.terminal.append("[offline] Loading the verified local template…\n")
-        try:
-            self.controller.build_offline()
-            self._schedule_terminal_poll()
-        except Exception as error:  # visible build error instead of a silent GUI failure
-            self.on_progress("disk_write", "failed")
-            self.terminal.append(f"Build failed: {error}\n", is_error=True)
-            self.input_panel.set_building(False)
-            self.terminal.set_command_enabled(True)
-            self._build_active = False
+        self.terminal.append(start_message)
+
+        def worker() -> None:
+            try:
+                build_action()
+                self._ui_events.put(("build_complete", None))
+            except Exception as error:  # visible build error instead of a silent GUI failure
+                self._ui_events.put(("build_failed", error))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _handle_build_failure(self, error: Exception) -> None:
+        self.on_progress("disk_write", "failed")
+        self.terminal.append(f"Build failed: {error}\n", is_error=True)
+        self.input_panel.set_building(False)
+        self.terminal.set_command_enabled(True)
+        self._build_active = False
 
     def run_terminal_command(self, command: str) -> None:
         runner = self.controller.terminal_runner

@@ -11,7 +11,7 @@ DEMO_PROMPT = "Build a Python CLI Task Manager app with SQLite support that can 
 
 
 class BuildInputPanel(ctk.CTkFrame):
-    def __init__(self, master: ctk.CTkBaseClass, on_offline_build: Callable[[], None]) -> None:
+    def __init__(self, master: ctk.CTkBaseClass, on_live_build: Callable[[], None], on_offline_build: Callable[[], None]) -> None:
         super().__init__(master, fg_color=theme.SURFACE, corner_radius=6, border_width=1, border_color=theme.BORDER)
         ctk.CTkLabel(self, text="Project Input", font=("Segoe UI Semibold", 15), text_color=theme.TEXT).pack(
             anchor="w", padx=14, pady=(14, 8)
@@ -32,9 +32,28 @@ class BuildInputPanel(ctk.CTkFrame):
             justify="left",
         ).pack(anchor="w", padx=14, pady=(0, 12))
         self.build_button = ctk.CTkButton(
-            self, text="Use Offline Template", command=on_offline_build, fg_color=theme.INDIGO, hover_color="#4F46E5", height=40
+            self, text="Build & Verify Project", command=on_live_build, fg_color=theme.INDIGO, hover_color="#4F46E5", height=40
         )
-        self.build_button.pack(fill="x", padx=14, pady=(0, 14))
+        self.build_button.pack(fill="x", padx=14, pady=(0, 8))
+        self.offline_button = ctk.CTkButton(
+            self,
+            text="Use Offline Template",
+            command=on_offline_build,
+            fg_color="transparent",
+            border_width=1,
+            border_color=theme.BORDER,
+            text_color=theme.TEXT,
+            height=36,
+        )
+        self.offline_button.pack(fill="x", padx=14, pady=(0, 14))
 
     def set_building(self, building: bool) -> None:
-        self.build_button.configure(state="disabled" if building else "normal", text="Building…" if building else "Use Offline Template")
+        state = "disabled" if building else "normal"
+        self.build_button.configure(state=state, text="Building…" if building else "Build & Verify Project")
+        self.offline_button.configure(state=state)
+
+    def set_live_availability(self, available: bool) -> None:
+        if available:
+            self.build_button.configure(state="normal", text="Build & Verify Project")
+        else:
+            self.build_button.configure(state="disabled", text="Fix Settings to Build")
