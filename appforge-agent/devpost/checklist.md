@@ -39,7 +39,7 @@ Build mode: fast
   Learner check: Start the app with no key and confirm **Fix Settings to Build** plus **Use Offline Template** appear; if using a key, run a live build and say whether the readiness and progress feedback make sense.
   Commit: `Add resilient OpenAI generation`
 
-- [ ] **4. The finished dashboard is polished and ready for the one-minute demo**
+- [x] **4. The finished dashboard is polished and ready for the one-minute demo**
   Becomes usable: The full core journey has the approved dark developer-console visual hierarchy, clear active/verified/failed states, and concise setup instructions so it can be recorded reliably.
   Why now: Visual polish lands after the interaction is real, so it refines proven behavior rather than decorating unverified scaffolding.
   PRD ref: `prd.md > Look and Feel`, `What We're Building`, `States and Boundaries`
