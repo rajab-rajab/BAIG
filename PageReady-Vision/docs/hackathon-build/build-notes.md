@@ -65,3 +65,10 @@
 - Awaiting participant UI inspection before marking items 6–8 complete and committing the milestone.
 
 - UI milestone approved. Accuracy note for submission materials: V1 displays original/processed evidence and chronological trace events, but does not draw defect bounding boxes or expose per-tool latency in the UI; only total backend execution runtime is currently recorded.
+
+## Docker Benchmarks Milestone
+
+- Built the full-stack multi-stage Docker image and added a static-file console route for the packaged frontend.
+- Added `scripts/benchmark.py`, which records operating-system, architecture, Python/OpenCV/NumPy versions, fixture outcomes, timing summaries, and an unrecorded comparison placeholder.
+- README now documents local development, Docker use, ARM64-compatible build preparation, reproducible benchmarks, and the strict non-claim boundary for AWS Graviton/COOL.
+- Participant verified the existing `pageready-vision:local` image running as `pageready-vision-check`, mapped from host port 8010 to container port 8000. The inspected benchmark artifact identified the local environment as Windows/AMD64 and explicitly disclaimed AWS Graviton and COOL results.

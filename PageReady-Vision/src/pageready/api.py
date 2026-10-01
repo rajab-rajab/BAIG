@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .schemas import OverrideRequest
 from .service import BatchService
@@ -99,6 +103,15 @@ def create_app(service: BatchService | None = None) -> FastAPI:
             return Response(content=service.get_image(image_id), media_type="image/png")
         except (ValueError, KeyError) as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
+
+    frontend_dir = Path(os.environ.get("PAGEREADY_FRONTEND_DIR", Path.cwd() / "frontend" / "dist"))
+    assets_dir = frontend_dir / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+        @app.get("/", include_in_schema=False)
+        def console() -> FileResponse:
+            return FileResponse(frontend_dir / "index.html")
 
     return app
 

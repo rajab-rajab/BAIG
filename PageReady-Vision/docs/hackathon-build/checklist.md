@@ -72,7 +72,7 @@ Approved: scripted API responses verified the four-page demo, review override, i
 
 Approved: complete four-page browser flow inspected, including deskew trace, evidence-led review, required-note override, summary, export control, and clean refresh/replay; `15 passed` and production frontend build passed. Commit the tested UI milestone before beginning Docker work.
 
-- [ ] **9. Package Docker runtime and benchmark harness**
+- [x] **9. Package Docker runtime and benchmark harness**
   Spec ref: `spec.md > 2. Technology Decisions` and `spec.md > 9. Verification Plan`
   What to build: Update the Docker build for the full stack and `linux/arm64` compatibility; add a benchmark script that records environment, fixture set, timings, and baseline comparison fields.
   Acceptance: The documented image builds/runs locally; benchmark output makes no AWS/Graviton result claim unless executed on verified ARM64 Graviton hardware.
@@ -80,7 +80,7 @@ Approved: complete four-page browser flow inspected, including deskew trace, evi
 
 ### Inspection milestone — Docker Benchmarks
 
-Inspect container startup, benchmark artifact fields, and README instructions. Commit the tested packaging milestone after approval.
+Approved: Docker image `pageready-vision:local` started successfully as `pageready-vision-check` and serves the full-stack console at `http://localhost:8010`; benchmark output records reproducibility metadata and explicit AMD64-local/non-claim wording. Commit the tested packaging milestone before beginning the rehearsal.
 
 - [ ] **10. Rehearse the end-to-end demo and prepare handoff artifacts**
   Spec ref: `spec.md > 10. Implementation Sequence` and `prd.md > Submission Proof Points`
