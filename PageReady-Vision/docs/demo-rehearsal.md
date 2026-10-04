@@ -1,6 +1,10 @@
 # PageReady Vision — Demo Rehearsal and Submission Evidence
 
-This rehearsal uses only deterministic synthetic municipal-style documents. It demonstrates a quality gate before OCR or downstream LLM processing; it does not claim production archival accuracy, AWS Graviton performance, COOL execution, or persistent audit storage.
+This rehearsal uses only deterministic synthetic municipal-style documents. It
+demonstrates a quality gate before OCR or downstream LLM processing. The live
+demo runs at `http://52.64.48.227` on AWS Graviton/ARM64 with OpenCV 5.0.0, but
+it does not claim production archival accuracy, COOL execution, performance
+benchmarks, or persistent audit storage.
 
 ## Clean-run commands
 
@@ -57,12 +61,13 @@ Do not upload images to Devpost during this rehearsal. They are inputs to `$prep
 | Time | Shot | Narration proof point |
 | --- | --- | --- |
 | 0:00–0:20 | First-run state | PageReady Vision gates document quality before OCR/LLM work. |
-| 0:20–0:45 | Load deterministic batch | Four controlled pages produce distinct, explainable outcomes. |
-| 0:45–1:35 | Skewed council minutes | A small recoverable skew is corrected, then independently verified before approval. |
+| 0:20–0:30 | Deployment and architecture | Show the AWS public endpoint and explain: OpenCV 5 perception → QualityGateAgent decision → action tool → OpenCV 5 verification. |
+| 0:30–0:50 | Load deterministic batch | Four controlled pages produce distinct, explainable outcomes. |
+| 0:50–1:35 | Skewed council minutes | A small recoverable skew is corrected, then independently verified before approval. |
 | 1:35–2:05 | Blurred property card | Severe blur fails safely to **Rescan requested**; no speculative correction. |
 | 2:05–2:50 | Low-contrast zoning notice | Evidence and trace appear before a clerk can approve with warning. |
 | 2:50–3:20 | Override and audit export | A required note creates an auditable, image-free decision trail. |
-| 3:20–3:45 | Reproducibility/non-claim close | Docker package is ARM64-compatible; AWS Graviton/COOL claims wait for measured AWS evidence. |
+| 3:20–3:45 | Reproducibility/non-claim close | The live AWS Graviton service runs OpenCV 5; no COOL runtime or benchmark is claimed. |
 
 ## Devpost handoff inventory
 
@@ -70,4 +75,4 @@ Do not upload images to Devpost during this rehearsal. They are inputs to `$prep
 - Screenshots: five captures from the checklist above.
 - Video: a public ≤5-minute recording following the shot list.
 - Benchmark: `runs/benchmark.json`, labeled with its actual environment and non-claim guardrail.
-- Submission facts: only verified local behavior, no production-accuracy, AWS, Graviton, or COOL performance claims.
+- Submission facts: verified local behavior and a live AWS Graviton OpenCV 5 demo; no production-accuracy, COOL, or performance claims.

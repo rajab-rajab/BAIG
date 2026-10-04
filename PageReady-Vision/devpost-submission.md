@@ -50,7 +50,12 @@ Expected results: 16 passing tests; `evaluation.json` reports four expected acti
 
 ## Public Demo Link
 
-Working web endpoint is not currently published. Judges can use the local full-stack instructions above or an arranged live screen-share demonstration.
+http://52.64.48.227
+
+This public Docker service runs on AWS EC2 `t4g.small` (Graviton/ARM64) in
+`ap-southeast-2`, with OpenCV 5.0.0 recorded in each page trace. The four-page
+demo was verified at this endpoint on October 4, 2026. It is a live demo, not a
+production archive deployment.
 
 ## Public Repository Link
 
@@ -67,19 +72,23 @@ Use the existing local localhost captures as candidate assets, then select 3-5 t
 ## Submission Readiness Notes
 
 - Selected special award: **Agentic Vision Award**.
-- Code archive candidate: `pageready-vision-update.tgz`.
+- Code archive candidate: `pageready-vision-66c724e.tgz` (source snapshot of the deployed build).
 - Technical report: `docs/technical-report.md`.
 - Reproducible evaluation: `runs/evaluation.json` (OpenCV 5.0.0, 4/4 expected actions, zero failures, zero unsafe approvals).
-- Local benchmark is Windows/AMD64 only and explicitly does not claim AWS Graviton or COOL results.
+- The live service is verified on AWS Graviton; the local benchmark remains Windows/AMD64 only and does not claim COOL results.
 
 ## Known Limitations
 
-This is a local four-fixture demonstration, not a production archive service. It has no deployed AWS endpoint, persistent store, user accounts, OCR/LLM extraction, or COOL-on-Graviton measurement. Frame-edge evidence is an escalation signal, not proof of physical-document truncation. The planned 150-page holdout evaluation has not yet been executed.
+This is a four-fixture demonstration, not a production archive service. It has a
+live AWS EC2 demo endpoint but no persistent store, user accounts, OCR/LLM
+extraction, or COOL-on-Graviton measurement. Frame-edge evidence is an
+escalation signal, not proof of physical-document truncation. The planned
+150-page holdout evaluation has not yet been executed.
 
 ## TODO Official Form Fields
 
 - Special Award Consideration: Agentic Vision Award.
 - Repository URL: populated above.
 - Testing instructions: populate from the section above.
-- Working web endpoint: optional; leave blank unless a public endpoint is deployed, or arrange a live screen-share.
+- Working web endpoint: populate with the public demo link above.
 - Video URL: required; upload the chosen <=5-minute recording and replace the placeholder before final submission.

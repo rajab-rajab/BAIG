@@ -9,10 +9,10 @@ Municipal archive and back-office teams receive document scans that may be skewe
 The application runs Python 3.12 with `opencv-python-headless 5.0.0.93`. OpenCV computes a Hough-line skew estimate and confidence, Laplacian-variance blur evidence, grayscale contrast spread, and conservative frame-edge-content evidence. A versioned deterministic policy consumes those measurements.
 
 ```text
-OpenCV 5 perception -> policy decision -> tool/action -> OpenCV 5 verification
-       skew, blur,          approve /        deskew, rescan,     final approval
-       contrast, edge       correct /        or human review     or escalation
-       evidence             escalate
+OpenCV 5 perception -> QualityGateAgent decision -> action tool -> OpenCV 5 verification
+       skew, blur,             approve /          deskew,          final approval
+       contrast, edge          correct /          rescan, or        or escalation
+       evidence                escalate           human review
 ```
 
 The skewed fixture demonstrates a multi-step perception-decision-action loop: OpenCV 5 detects a confident recoverable skew; the agent passes the measured angle to `auto_correct`; OpenCV 5 re-analyzes the corrected image with `verify_corrected_page`; and post-correction skew evidence determines whether the page is approved or escalated to a clerk.
@@ -23,7 +23,15 @@ This is not a chatbot describing a fixed result: the visual measurement changes 
 
 The React/Vite operations console calls a FastAPI service that owns an ephemeral batch. The service invokes the OpenCV 5 `QualityGateAgent`, then returns page metrics, image evidence, and chronological trace events to the console. The export path produces image-free JSON containing metrics, actions, and override notes, but no document bytes or URLs.
 
-For deployment, the repository includes a Docker image that is compatible with `linux/arm64`. The intended production AWS architecture is raw and processed images in distinct S3 prefixes, an ARM64 worker on AWS Graviton, trace metadata in DynamoDB, CloudWatch metrics, and Step Functions routing for rescan and human-review events. That design is a target, not a claim of an AWS deployment or COOL execution in this submission.
+The current demo is deployed at `http://52.64.48.227` as a Docker service on an
+AWS EC2 `t4g.small` (Graviton/ARM64) instance in `ap-southeast-2`. The deployed
+container runs OpenCV 5.0.0 for the core image-analysis workload; the public
+four-page demo was checked end to end, including runtime-provenance trace
+events. The intended production AWS architecture is raw and processed images in
+distinct S3 prefixes, an ARM64 worker on AWS Graviton, trace metadata in
+DynamoDB, CloudWatch metrics, and Step Functions routing for rescan and
+human-review events. Those production components remain a target, and this
+submission makes no COOL execution or benchmark claim.
 
 ## Evaluation and results
 
@@ -46,8 +54,18 @@ The console presents a live queue and a split evidence panel with original and c
 
 All demo documents are deterministic synthetic pages with no real archive data. The project ships source, Docker instructions, a pinned dependency lockfile, automated tests, a benchmark harness, and an evaluation script. Audit exports exclude image payloads. Uploaded invalid images remain visible as safe error items, and local session data is intentionally cleared on refresh.
 
-The source makes no claim that `content_touches_frame` proves physical-document truncation. It is treated only as an escalation signal. The current V1 has no user accounts, durable audit store, production rescan integration, AWS deployment, or COOL-on-Graviton measurement; those are explicitly excluded from performance or deployment claims.
+The source makes no claim that `content_touches_frame` proves physical-document
+truncation. It is treated only as an escalation signal. The current V1 has no
+user accounts, durable audit store, production rescan integration, or
+COOL-on-Graviton measurement; those are explicitly excluded from performance
+claims. The AWS EC2 service is a verified demonstration endpoint, not a
+production archive deployment.
 
 ## Limitations and next steps
 
-The current application is a four-fixture local demonstration rather than a production archive system. It does not run OCR or LLM extraction, and its deterministic deskew policy is limited to validated small rotations. Next steps are a held-out synthetic evaluation, role-based clerk identity, persistent audits, and an AWS Graviton deployment with a verified COOL baseline comparison.
+The current application is a four-fixture demonstration rather than a
+production archive system. It does not run OCR or LLM extraction, and its
+deterministic deskew policy is limited to validated small rotations. Next steps
+are a held-out synthetic evaluation, role-based clerk identity, persistent
+audits, and a verified COOL baseline comparison on the deployed AWS Graviton
+runtime.

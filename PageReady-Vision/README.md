@@ -85,4 +85,10 @@ The resulting JSON documents operating-system, architecture, Python/OpenCV versi
 
 ## Deployment note
 
-The source uses stable OpenCV APIs so it can be tested locally. The competition deployment must run its core image workload with OpenCV 5 and, for the COOL track, verify the COOL runtime on AWS Graviton before claiming a benchmark result. Do not label a local development wheel, an ARM64-compatible container, or a local benchmark as COOL.
+The demo is deployed at `http://52.64.48.227` on an AWS EC2 `t4g.small`
+(Graviton/ARM64) instance in `ap-southeast-2`. The public Docker service runs
+the core quality-gate workload with OpenCV 5.0.0 and has been verified with the
+four-page demo. This is runtime-deployment evidence, not a COOL claim: no COOL
+runtime or Graviton performance benchmark has been measured. Do not label a
+local development wheel, an ARM64-compatible container, or a local benchmark
+as COOL.

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at_utc": "2026-10-04T12:12:57.247088+00:00",
+  "generated_at_utc": "2026-10-04T14:08:43.579680+00:00",
   "scope": "Deterministic four-fixture smoke evaluation; not a holdout or production-accuracy result.",
   "environment": {
     "platform": "Windows-11-10.0.22631-SP0",
