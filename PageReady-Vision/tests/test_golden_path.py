@@ -34,6 +34,8 @@ def test_golden_path_corrects_and_verifies_a_rotated_page() -> None:
         "auto_correct",
         "verify_corrected_page",
     ]
+    provenance = next(event for event in trace["events"] if event["event_type"] == "runtime_provenance")
+    assert provenance["detail"]["opencv_version"]
 
 
 def test_blurry_page_requests_rescan() -> None:

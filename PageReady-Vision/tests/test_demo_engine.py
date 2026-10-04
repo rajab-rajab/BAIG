@@ -28,7 +28,16 @@ def test_demo_documents_follow_the_intended_policy_outcomes() -> None:
 def test_trace_events_match_the_contract() -> None:
     trace = QualityGateAgent(policy=AgentPolicy(minimum_blur=45.0)).process(generate_demo_documents()[1].image)[1]
     events = [TraceEvent.model_validate(event) for event in trace["events"]]
-    assert [event.event_type for event in events] == ["input_received", "image_analyzed", "action_selected", "tool_invoked", "correction_verified", "outcome_resolved"]
+    assert [event.event_type for event in events] == [
+        "input_received",
+        "runtime_provenance",
+        "image_analyzed",
+        "action_selected",
+        "tool_invoked",
+        "correction_verified",
+        "outcome_resolved",
+    ]
+    assert events[1].detail["opencv_version"]
     assert all(event.actor == "system" for event in events)
 
 

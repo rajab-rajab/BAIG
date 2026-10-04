@@ -26,6 +26,16 @@ Run an image through the local golden path:
 .\.venv\Scripts\python.exe -m pageready.cli analyze .\example.png --output-dir .\runs
 ```
 
+Create an award-evidence smoke evaluation (the JSON includes the exact OpenCV
+runtime, expected and observed decisions, tool sequences, and safety counts):
+
+```powershell
+.\.venv\Scripts\python.exe scripts\evaluate.py --output runs\evaluation.json
+```
+
+See `docs/agentic-vision-award-evidence.md` for the workflow diagram and the
+submission capture checklist.
+
 Run the local full-stack console in two terminals:
 
 ```powershell

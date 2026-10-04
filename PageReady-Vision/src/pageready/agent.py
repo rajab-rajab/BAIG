@@ -68,6 +68,11 @@ class QualityGateAgent:
         tool_calls: list[dict[str, Any]] = []
         events = [
             self._event("input_received", "Received image for quality analysis.", {"input_checksum_sha256": input_checksum}),
+            self._event(
+                "runtime_provenance",
+                "Recorded the OpenCV runtime that produced the visual evidence.",
+                {"opencv_version": cv2.__version__},
+            ),
             self._event("image_analyzed", "Collected OpenCV quality evidence.", {"metrics": asdict(initial)}),
         ]
         output = image.copy()

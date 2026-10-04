@@ -72,3 +72,8 @@
 - Added `scripts/benchmark.py`, which records operating-system, architecture, Python/OpenCV/NumPy versions, fixture outcomes, timing summaries, and an unrecorded comparison placeholder.
 - README now documents local development, Docker use, ARM64-compatible build preparation, reproducible benchmarks, and the strict non-claim boundary for AWS Graviton/COOL.
 - Participant verified the existing `pageready-vision:local` image running as `pageready-vision-check`, mapped from host port 8010 to container port 8000. The inspected benchmark artifact identified the local environment as Windows/AMD64 and explicitly disclaimed AWS Graviton and COOL results.
+
+## End-to-End Rehearsal and Handoff
+
+- Added `docs/demo-rehearsal.md` with clean-run commands, the complete deterministic four-outcome rehearsal, an image-free audit check, five screenshot targets, a 3:45 video shot list, and a Devpost evidence inventory.
+- Actual screenshots and recording remain participant-captured verification artifacts; no captures are represented as complete until inspected by the participant.
