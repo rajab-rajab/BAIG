@@ -15,3 +15,5 @@
 .file-actions { display: flex; gap: 12px; padding: 0 9px 10px 36px; color: #e6b96e; font-size: 10px; }
 .file-actions button, .file-actions label { color: inherit; border: 0; background: transparent; padding: 0; text-decoration: underline; cursor: pointer; }
 .file-actions input { display: none; }
+
+.runtime-provenance { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 10px; padding: 8px 9px; border: 1px solid #315266; border-radius: 6px; background: #102431; }.runtime-provenance span { color: #87b9d1; font: 10px 'DM Mono', monospace; letter-spacing: .08em; }.runtime-provenance strong { color: #8de6c1; font: 700 13px 'DM Mono', monospace; }

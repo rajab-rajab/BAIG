@@ -2,6 +2,12 @@
 
 ## Required Agentic Vision workflow diagram
 
+![Pictorial PageReady Vision Agentic OpenCV 5 workflow](agentic-vision-workflow.png)
+
+The pictorial diagram is the recommended on-screen asset for the submission
+video; the Mermaid version below remains the source-controlled, accessible
+diagram.
+
 ```mermaid
 flowchart TB
     input[Document page] --> perception[OpenCV 5 perception\nSkew, confidence, blur, contrast, frame-edge evidence]
@@ -24,11 +30,23 @@ flowchart TB
     approvedWarning --> trace
 ```
 
+The Agentic Vision workflow separates visual perception, autonomous decision-making, action execution, verification, and human oversight. OpenCV 5 first measures document-quality evidence including skew angle, blur, contrast, confidence, and frame-edge conditions. The QualityGateAgent then reasons over those measurements to select an appropriate action.
+
+The strongest agentic branch is automatic skew correction. When the system detects a confident, limited skew, the measured OpenCV 5 angle is passed directly to the `auto_correct` action as its correction parameter. The corrected page is then independently evaluated by `verify_corrected_page`. If the new OpenCV 5 evidence confirms that the correction succeeded, the page is approved. If verification fails or remains uncertain, the agent escalates the page to human review.
+
+This creates a closed perception-action-verification loop in which computer-vision evidence affects both what action is taken and whether that action is ultimately accepted. Severe blur instead triggers a rescan request, while low confidence, poor contrast, frame-edge evidence, or failed verification routes the document to a clerk. Human approval requires an explicit rationale, and every system and human decision is recorded in a chronological image-free audit trace.
+
 This diagram shows the required perception, decision/orchestration, and action
 stages. The correction branch is the central Agentic Vision proof: an OpenCV 5
 measurement changes the `auto_correct` parameter, and later OpenCV 5 evidence
 changes whether the system approves or escalates.
-
+The architecture can be summarized as:
+1. Perception: OpenCV 5 measures skew, confidence, blur, contrast, and frame-edge evidence.
+2. Agent decision: QualityGateAgent interprets those measurements and selects an action.
+3. Action: approve, auto-correct, request rescan, or send to human review.
+4. Verification: corrected pages are re-evaluated by OpenCV 5.
+5. Human control: uncertain cases require clerk rationale rather than silent approval.
+6. Auditability: every outcome reaches a chronological, image-free audit trace.
 ## Trace demonstration
 
 The `council-minutes-skewed.png` fixture proves that a vision measurement

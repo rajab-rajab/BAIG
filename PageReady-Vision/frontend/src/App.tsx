@@ -160,5 +160,8 @@ function MetricCard({ page }: { page: Page }) {
 function Metric({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value}</strong></div> }
 
 function TraceCard({ page }: { page: Page }) {
-  return <section className="trace-card"><p className="eyebrow">EXECUTION TRACE</p><div className="trace-list">{page.trace.length ? page.trace.map((event, index) => <div className="trace-event" key={event.event_id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{event.summary}</strong><small>{event.event_type.replaceAll('_', ' ')} · {event.actor}</small></div></div>) : <div className="trace-empty">Trace will appear after analysis begins.</div>}</div></section>
+  const runtimeEvent = page.trace.find((event) => event.event_type === 'runtime_provenance')
+  const openCvVersion = runtimeEvent?.detail.opencv_version
+
+  return <section className="trace-card"><p className="eyebrow">EXECUTION TRACE</p>{openCvVersion ? <div className="runtime-provenance"><span>OPENCV RUNTIME</span><strong>{String(openCvVersion)}</strong></div> : null}<div className="trace-list">{page.trace.length ? page.trace.map((event, index) => <div className="trace-event" key={event.event_id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{event.summary}</strong><small>{event.event_type.replaceAll('_', ' ')} · {event.actor}</small></div></div>) : <div className="trace-empty">Trace will appear after analysis begins.</div>}</div></section>
 }
