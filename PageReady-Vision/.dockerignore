@@ -1,8 +1,0 @@
-.git
-.venv
-.pytest_cache
-runs
-frontend/node_modules
-frontend/dist
-__pycache__
-*.pyc
