@@ -2,6 +2,16 @@
 
 PageReady Vision is an agentic document-quality gate. It inspects an uploaded page, uses OpenCV evidence to choose a corrective or escalation tool, verifies any correction, and emits an auditable trace.
 
+## Runtime flow
+
+`QualityGateAgent → OpenCV analysis → action tool → OpenCV verification`
+
+`QualityGateAgent` is the runtime agent in this application. It uses OpenCV
+for vision analysis and correction; it is not OpenCV itself. Its action tools
+are `auto_correct`, `verify_corrected_page`, `request_rescan`, and
+`send_to_human_review`. Codex was used to help develop the project, not as the
+runtime agent that processes documents.
+
 ## Golden path
 
 1. Analyze a document's visual evidence.
