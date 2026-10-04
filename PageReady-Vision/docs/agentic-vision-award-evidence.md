@@ -1,28 +1,33 @@
 # Agentic Vision Award Evidence
 
-## Workflow diagram
+## Required Agentic Vision workflow diagram
 
-```text
-Document image
-      |
-      v
-OpenCV perception: skew, confidence, blur, contrast, frame-edge evidence
-      |
-      v
-Deterministic policy / orchestration
-      |-------------------------|-------------------------|
-      v                         v                         v
-auto_correct deskew       request_rescan           send_to_human_review
-      |                                                   |
-      v                                                   v
-verify_corrected_page                              clerk reviews evidence
-      |                                                   |
-      v                                                   v
-approve, or escalate --------------------------> approve with required note
-      |
-      v
-Auditable, image-free event trace
+```mermaid
+flowchart TB
+    input[Document page] --> perception[OpenCV 5 perception\nSkew, confidence, blur, contrast, frame-edge evidence]
+    perception --> agent[QualityGateAgent\nDecision and orchestration]
+
+    agent -->|Clean evidence| approve[Approve]
+    agent -->|Confident small skew| correct[Action tool: auto_correct\nMeasured angle is the parameter]
+    agent -->|Severe blur| rescan[Action tool: request_rescan]
+    agent -->|Low confidence, low contrast,\nframe edge, or failed verification| review[Action tool: send_to_human_review]
+
+    correct --> verify[OpenCV 5 verification\nverify_corrected_page]
+    verify -->|Verified correction| approve
+    verify -->|Failed or uncertain| review
+    review --> clerk[Human control\nClerk enters required rationale]
+    clerk -->|Approve with warning| approvedWarning[Approved with warning]
+
+    approve --> trace[Chronological image-free audit trace]
+    rescan --> trace
+    review --> trace
+    approvedWarning --> trace
 ```
+
+This diagram shows the required perception, decision/orchestration, and action
+stages. The correction branch is the central Agentic Vision proof: an OpenCV 5
+measurement changes the `auto_correct` parameter, and later OpenCV 5 evidence
+changes whether the system approves or escalates.
 
 ## Trace demonstration
 
@@ -58,6 +63,17 @@ evaluation only; do not present it as the 150-page holdout evaluation in
   human review.
 - A clerk can approve a review item only with a non-empty override note.
 - The decision trace retains both machine evidence and the clerk action.
+
+## Award evidence map
+
+| Required evidence | Project proof | What to show in the video or screenshots |
+| --- | --- | --- |
+| Agent workflow diagram | Mermaid diagram above; deployed-system diagram in `architecture.md` | Display this diagram and name the flow: OpenCV perception → QualityGateAgent decision → action tool → OpenCV verification. |
+| OpenCV output changes later action | `council-minutes-skewed.png` trace and `runs/evaluation.json` | Show measured skew, `auto_correct`, verification, and approval in one continuous capture. |
+| Task success | Four-fixture smoke evaluation: 4/4 expected outcomes | Show the completed queue summary and evaluation artifact. |
+| Failure handling | Blur requests rescan; uncertainty routes to review | Show the blurred and low-contrast outcomes. |
+| Observability | Runtime provenance, evidence, tool, verification, and resolution trace events | Open a page trace and show `runtime_provenance` reporting OpenCV 5.x. |
+| Human control | Required non-empty clerk note before warning approval | Enter a real review rationale and show the warning remains in the trace. |
 
 ## Submission checklist
 
