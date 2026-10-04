@@ -72,7 +72,7 @@ Use the existing local localhost captures as candidate assets, then select 3-5 t
 ## Submission Readiness Notes
 
 - Selected special award: **Agentic Vision Award**.
-- Code archive candidate: `pageready-vision-66c724e.tgz` (source snapshot of the deployed build).
+- Code archive candidate: `pageready-vision-ae8c20d.zip` (clean source snapshot of the published build).
 - Technical report: `docs/technical-report.md`.
 - Reproducible evaluation: `runs/evaluation.json` (OpenCV 5.0.0, 4/4 expected actions, zero failures, zero unsafe approvals).
 - The live service is verified on AWS Graviton; the local benchmark remains Windows/AMD64 only and does not claim COOL results.
