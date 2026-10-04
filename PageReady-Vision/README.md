@@ -83,12 +83,18 @@ Capture a local benchmark artifact:
 
 The resulting JSON documents operating-system, architecture, Python/OpenCV versions, fixture outcomes, median/p95 timing, and a comparison placeholder. It is **not** AWS Graviton or COOL evidence unless the same command runs on documented AWS ARM64/Graviton hardware with the intended runtime.
 
-## Deployment note
+## Public AWS deployment
 
-The demo is deployed at `http://52.64.48.227` on an AWS EC2 `t4g.small`
-(Graviton/ARM64) instance in `ap-southeast-2`. The public Docker service runs
-the core quality-gate workload with OpenCV 5.0.0 and has been verified with the
-four-page demo. This is runtime-deployment evidence, not a COOL claim: no COOL
-runtime or Graviton performance benchmark has been measured. Do not label a
-local development wheel, an ARM64-compatible container, or a local benchmark
-as COOL.
+PageReady Vision is fully deployed as a public Docker web application on AWS
+EC2 `t4g.small` (Graviton/ARM64) in `ap-southeast-2`.
+
+- **Live application:** [http://52.64.48.227](http://52.64.48.227)
+- **Persistent Elastic IP:** `52.64.48.227`
+- **Runtime:** OpenCV 5.0.0, FastAPI, and the built React console in Docker
+
+The Elastic IP remains available through EC2 stop/start cycles while it stays
+allocated to this AWS account. The public service has been verified with the
+four-page quality-gate demo. This is runtime-deployment evidence, not a COOL
+claim: no COOL runtime or Graviton performance benchmark has been measured.
+Do not label a local development wheel, an ARM64-compatible container, or a
+local benchmark as COOL.
